@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using MusicApp2017.Models;
 
 namespace MusicApp2017.Controllers
-{
+{ 
     public class AlbumsController : Controller
     {
         private readonly MusicDbContext _context;
