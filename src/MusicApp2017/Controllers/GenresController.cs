@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MusicApp2017.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MusicApp2017.Controllers
 {
@@ -33,7 +34,6 @@ namespace MusicApp2017.Controllers
             }
 
             var albumsContext = _context.Albums.Include(a => a.Artist).Include(a => a.Genre);
-
             var genre = await albumsContext.Where(a => a.GenreID == id).ToListAsync();
 
             if (genre == null)
@@ -45,6 +45,7 @@ namespace MusicApp2017.Controllers
         }
 
         // GET: Genres/Create
+        [Authorize]
         public IActionResult Create()
         {
             return View();
@@ -53,6 +54,7 @@ namespace MusicApp2017.Controllers
         // POST: Genres/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("GenreID,Name")] Genre genre)
@@ -67,6 +69,7 @@ namespace MusicApp2017.Controllers
         }
 
         // GET: Genres/Edit/5
+        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -85,6 +88,7 @@ namespace MusicApp2017.Controllers
         // POST: Genres/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("GenreID,Name")] Genre genre)
@@ -117,15 +121,28 @@ namespace MusicApp2017.Controllers
             return View(genre);
         }
 
-  
+      
+
+        // POST: Genres/Delete/5
+        [Authorize]
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var genre = await _context.Genres.SingleOrDefaultAsync(m => m.GenreID == id);
+            _context.Genres.Remove(genre);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Index");
+        }
 
         private bool GenreExists(int id)
         {
             return _context.Genres.Any(e => e.GenreID == id);
         }
-        private bool GenreExists(string genreName)
+
+        private bool GenreExists(string name)
         {
-            return _context.Genres.Any(e => e.Name == genreName);
+            return _context.Genres.Any(e => e.Name == name);
         }
     }
 }

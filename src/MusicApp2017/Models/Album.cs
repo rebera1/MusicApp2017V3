@@ -10,7 +10,7 @@ namespace MusicApp2017.Models
     public class Album
     {
         public int AlbumID { get; set; }
-        [Required(ErrorMessage ="Title is required")]
+        [Required(ErrorMessage ="Album title is required.")]
         public string Title { get; set; }
 
         // Foreign key

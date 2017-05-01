@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MusicApp2017.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MusicApp2017.Controllers
 {
@@ -24,6 +25,8 @@ namespace MusicApp2017.Controllers
             return View(await _context.Artists.ToListAsync());
         }
 
+        
+
         // GET: Artists/Details/5
         public async Task<IActionResult> Details(int? id)
         {
@@ -33,18 +36,18 @@ namespace MusicApp2017.Controllers
             }
 
             var albumsContext = _context.Albums.Include(a => a.Artist).Include(a => a.Genre);
+            var albums = await albumsContext.Where(a => a.ArtistID == id).ToListAsync();
 
-            var artist = await albumsContext.Where(a => a.ArtistID == id).ToListAsync();
-
-            if (artist == null)
+            if (albums == null)
             {
                 return NotFound();
             }
 
-            return View(artist);
+            return View(albums);
         }
 
         // GET: Artists/Create
+        [Authorize]
         public IActionResult Create()
         {
             return View();
@@ -53,6 +56,7 @@ namespace MusicApp2017.Controllers
         // POST: Artists/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ArtistID,Name,Bio")] Artist artist)
@@ -67,6 +71,7 @@ namespace MusicApp2017.Controllers
         }
 
         // GET: Artists/Edit/5
+        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -85,9 +90,10 @@ namespace MusicApp2017.Controllers
         // POST: Artists/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ArtistID,Name")] Artist artist)
+        public async Task<IActionResult> Edit(int id, [Bind("ArtistID,Name,Bio")] Artist artist)
         {
             if (id != artist.ArtistID)
             {
@@ -118,6 +124,7 @@ namespace MusicApp2017.Controllers
         }
 
         // GET: Artists/Delete/5
+        [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -136,6 +143,7 @@ namespace MusicApp2017.Controllers
         }
 
         // POST: Artists/Delete/5
+        [Authorize]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -146,13 +154,15 @@ namespace MusicApp2017.Controllers
             return RedirectToAction("Index");
         }
 
+
         private bool ArtistExists(int id)
         {
             return _context.Artists.Any(e => e.ArtistID == id);
         }
-        private bool ArtistExists(String artistName)
+
+        private bool ArtistExists(string name)
         {
-            return _context.Artists.Any(e => e.Name == artistName);
+            return _context.Artists.Any(e => e.Name == name);
         }
     }
 }

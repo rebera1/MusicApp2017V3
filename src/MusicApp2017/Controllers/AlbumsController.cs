@@ -6,41 +6,55 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MusicApp2017.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace MusicApp2017.Controllers
 {
     public class AlbumsController : Controller
     {
         private readonly MusicDbContext _context;
-
-        public AlbumsController(MusicDbContext context)
+        private readonly UserManager<ApplicationUser> _userManager;
+        public AlbumsController(MusicDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Albums
         public async Task<IActionResult> Index()
         {
-            var musicDbContext = _context.Albums.Include(a => a.Artist).Include(a => a.Genre);
-            return View(await musicDbContext.ToListAsync());
+            if (User.Identity.IsAuthenticated)
+            {
+                var currentUser = await _userManager.GetUserAsync(User);
+                var musicDbContext = _context.Albums.Include(a => a.Artist).Include(a => a.Genre).OrderByDescending(a => a.GenreID == currentUser.GenreID);
+
+                return View(await musicDbContext.ToListAsync());
+            }
+            else
+            {
+                var musicDbContext = _context.Albums.Include(a => a.Artist).Include(a => a.Genre);
+                return View(await musicDbContext.ToListAsync());
+            }
         }
+
 
         // GET: Albums/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
             {
+                Response.StatusCode = 404;
                 return NotFound();
             }
 
             var albumContext = _context.Albums
                 .Include(a => a.Artist)
                 .Include(a => a.Genre);
-
             var album = await albumContext.Where(m => m.AlbumID == id).ToListAsync();
-
             if (album == null)
             {
+                Response.StatusCode = 404;
                 return NotFound();
             }
 
@@ -48,6 +62,7 @@ namespace MusicApp2017.Controllers
         }
 
         // GET: Albums/Create
+        [Authorize]
         public IActionResult Create()
         {
             ViewData["ArtistID"] = new SelectList(_context.Artists, "ArtistID", "Name");
@@ -58,11 +73,12 @@ namespace MusicApp2017.Controllers
         // POST: Albums/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("AlbumID,Title,ArtistID,GenreID,Likes")] Album album)
         {
-            if (ModelState.IsValid && !this.AlbumExists(album.Title))
+            if (ModelState.IsValid)
             {
                 _context.Add(album);
                 await _context.SaveChangesAsync();
@@ -74,6 +90,7 @@ namespace MusicApp2017.Controllers
         }
 
         // GET: Albums/Edit/5
+        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -94,6 +111,7 @@ namespace MusicApp2017.Controllers
         // POST: Albums/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("AlbumID,Title,ArtistID,GenreID,Likes")] Album album)
@@ -129,6 +147,7 @@ namespace MusicApp2017.Controllers
         }
 
         // GET: Albums/Delete/5
+        [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -149,6 +168,7 @@ namespace MusicApp2017.Controllers
         }
 
         // POST: Albums/Delete/5
+        [Authorize]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -163,9 +183,10 @@ namespace MusicApp2017.Controllers
         {
             return _context.Albums.Any(e => e.AlbumID == id);
         }
-        private bool AlbumExists(String albumName)
+
+        private bool AlbumExists(string title)
         {
-            return _context.Albums.Any(e => e.Title == albumName);
+            return _context.Albums.Any(e => e.Title == title);
         }
     }
 }
