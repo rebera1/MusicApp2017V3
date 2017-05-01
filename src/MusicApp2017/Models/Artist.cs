@@ -8,5 +8,7 @@ namespace MusicApp2017.Models
 
         [Required(ErrorMessage ="Artist name is required")]
         public string Name { get; set; }
+
+        public string Bio { get; set; }
     }
 }

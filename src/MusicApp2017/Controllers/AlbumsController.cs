@@ -8,14 +8,14 @@ using Microsoft.EntityFrameworkCore;
 using MusicApp2017.Models;
 
 namespace MusicApp2017.Controllers
-{ 
+{
     public class AlbumsController : Controller
     {
         private readonly MusicDbContext _context;
 
         public AlbumsController(MusicDbContext context)
         {
-            _context = context;    
+            _context = context;
         }
 
         // GET: Albums
@@ -33,11 +33,12 @@ namespace MusicApp2017.Controllers
                 return NotFound();
             }
 
-            var albumContext =  _context.Albums
+            var albumContext = _context.Albums
                 .Include(a => a.Artist)
                 .Include(a => a.Genre);
-            var album = await albumContext
-                .SingleOrDefaultAsync(m => m.AlbumID == id);
+
+            var album = await albumContext.Where(m => m.AlbumID == id).ToListAsync();
+
             if (album == null)
             {
                 return NotFound();
@@ -60,8 +61,8 @@ namespace MusicApp2017.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("AlbumID,Title,ArtistID,GenreID,Likes")] Album album)
-        { 
-            if (ModelState.IsValid)
+        {
+            if (ModelState.IsValid && !this.AlbumExists(album.Title))
             {
                 _context.Add(album);
                 await _context.SaveChangesAsync();
@@ -161,6 +162,10 @@ namespace MusicApp2017.Controllers
         private bool AlbumExists(int id)
         {
             return _context.Albums.Any(e => e.AlbumID == id);
+        }
+        private bool AlbumExists(String albumName)
+        {
+            return _context.Albums.Any(e => e.Title == albumName);
         }
     }
 }
