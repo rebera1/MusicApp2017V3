@@ -27,9 +27,15 @@
         <dd>
             @Model.First().Genre.Name
         </dd>
-    </dl>
+        <dt>
+            Rating
+        </dt>
+        <dd>
+            @ViewData["Rating"]
+</dl>
 </div>
 <div>
+    <a asp-action="Rate" asp-route-id="@Model.First().AlbumID">Rate Album</a> |
     <a asp-action="Edit" asp-route-id="@Model.First().AlbumID">Edit</a> |
     <a asp-action="Index">Back to List</a>
 </div>
